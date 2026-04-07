@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sửa bài test</title>
+    <link rel="stylesheet" href="../css/test-edit.css" />
+  </head>
+  <body>
+    <header class="header">
+      <section class="logo">
+        <a href="">QuizzForge</a>
+      </section>
+      <nav class="pages-link">
+        <a href="../pages/test-manager.html">Bài test</a>
+      </nav>
+    </header>
+
+    <main class="main-content">
+      <h1 class="page-title">Sửa bài test</h1>
+
+      <div class="form-input">
+        <label for="test-name">Tên bài test</label>
+        <input type="text" id="test-name" placeholder="Điền tên bài test" />
+        <span class="error-test"></span>
+
+        <label>Ảnh bài test</label>
+        <div class="file-input-wrapper">
+          <label for="category-img" class="btn-file">📁 Chọn ảnh</label>
+          <input type="file" id="category-img" accept="image/*" />
+          <span class="file-name" id="file-name">Chưa chọn ảnh</span>
+        </div>
+        <img id="preview-img" src="" alt="preview" />
+        <span class="error-icon"></span>
+
+        <div class="form-row">
+          <div class="form-group category">
+            <label for="test-category">Danh mục</label>
+            <select id="test-category"></select>
+          </div>
+          <div class="form-group time">
+            <label for="test-time">Thời gian (phút)</label>
+            <input type="number" id="test-time" min="1" />
+          </div>
+        </div>
+        <span class="error-time"></span>
+      </div>
+
+      <h2>Quản lý câu hỏi</h2>
+      <span class="missing-question"></span>
+
+      <div class="action-bar">
+        <button class="btn-add">Thêm câu hỏi</button>
+        <button class="btn-save">Lưu</button>
+      </div>
+
+      <section class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th class="col-name">Câu hỏi</th>
+              <th class="col-action">Hành động</th>
+            </tr>
+          </thead>
+          <tbody class="question-test"></tbody>
+        </table>
+      </section>
+    </main>
+
+    <!-- OVERLAY -->
+    <div id="overlay" class="overlay"></div>
+
+    <!-- POPUP THÊM / SỬA CÂU HỎI -->
+    <div id="popup-form" class="popup">
+      <div class="popup-header">
+        <h2 id="popup-title">Câu hỏi</h2>
+        <button id="popup-close" class="popup-close">&times;</button>
+      </div>
+      <div class="popup-body">
+        <!-- Nội dung câu hỏi -->
+        <div class="form-group">
+          <label>Nội dung câu hỏi</label>
+          <input
+            type="text"
+            id="question-name"
+            placeholder="Nhập câu hỏi (10-100 ký tự)"
+          />
+          <span class="error-question"></span>
+        </div>
+
+        <!-- Danh sách đáp án -->
+        <div class="answer-section">
+          <div class="answer-section-header">
+            <label
+              >Đáp án
+              <span class="answer-hint"
+                >(tối thiểu 2 đáp án, chọn 1 đáp án đúng)</span
+              ></label
+            >
+            <button type="button" class="btn-add-answer" id="btn-add-answer">
+              + Thêm đáp án
+            </button>
+          </div>
+          <span class="error-answer"></span>
+          <div class="answer-list" id="answer-list"></div>
+        </div>
+      </div>
+      <div class="popup-footer">
+        <button id="btn-cancel" class="btn-secondary">Huỷ</button>
+        <button id="btn-save" class="btn-primary">Lưu câu hỏi</button>
+      </div>
+    </div>
+
+    <!-- POPUP XÁC NHẬN XÓA CÂU HỎI -->
+    <div id="popup-confirm" class="popup popup-confirm">
+      <div class="popup-header">
+        <h3>Xác nhận xoá</h3>
+      </div>
+      <div class="popup-body">
+        <p>
+          Bạn có chắc muốn xoá câu hỏi: <strong id="confirm-name"></strong>?
+        </p>
+      </div>
+      <div class="popup-footer">
+        <button id="btn-cancel-delete" class="btn-secondary">Huỷ</button>
+        <button id="btn-confirm-delete" class="btn-danger">Xoá</button>
+      </div>
+    </div>
+
+    <!-- POPUP THÀNH CÔNG -->
+    <div id="popup-success">
+      <div class="popup-box">
+        <p>Sửa Bài Test Thành Công!</p>
+      </div>
+    </div>
+
+    <footer>© 2025 Quiz App. All rights reserved.</footer>
+
+    <script src="../js/test-edit.js"></script>
+  </body>
+</html>

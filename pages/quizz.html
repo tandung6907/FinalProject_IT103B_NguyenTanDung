@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trang làm bài test</title>
+    <link rel="stylesheet" href="../css/quizz.css" />
+  </head>
+  <body>
+    <header class="header">
+      <section class="logo">
+        <a href="">QuizzForge</a>
+      </section>
+      <section class="search-bar">
+        <input
+          type="text"
+          placeholder="Tìm kiếm bài test"
+          class="input-search"
+        />
+      </section>
+      <nav class="pages-link">
+        <a
+          href="#"
+          onclick="
+            handleHome();
+            return false;
+          "
+          >Trang Chủ</a
+        >
+        <button onclick="logOut()">Đăng Xuất</button>
+      </nav>
+    </header>
+
+    <main class="quiz-main">
+      <!-- SIDEBAR -->
+      <aside class="quiz-sidebar">
+        <p class="sidebar-title">Điều hướng</p>
+        <div class="sidebar-grid" id="nav-grid"></div>
+        <div class="sidebar-legend">
+          <div class="legend-item">
+            <div class="legend-dot legend-dot--current"></div>
+            <span>Đang xem</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot legend-dot--answered"></div>
+            <span>Đã trả lời</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot legend-dot--unanswered"></div>
+            <span>Chưa trả lời</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- CONTENT -->
+      <section class="quiz-content">
+        <!-- INFO BAR -->
+        <div class="quiz-infobar">
+          <h2 class="quiz-test-name" id="quiz-test-name">—</h2>
+          <div class="quiz-timers">
+            <div class="timer-block">
+              <div class="timer-label">Tổng thời gian</div>
+              <div class="timer-value" id="total-time-val">—</div>
+            </div>
+            <div class="timer-block" id="countdown-block">
+              <div class="timer-label">Còn lại</div>
+              <div class="timer-value" id="countdown">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUESTION -->
+        <div class="quiz-card">
+          <div class="quiz-progress">
+            <span class="quiz-qnum" id="quiz-qnum">Câu 1 / 1</span>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                id="progress-fill"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+          <p class="quiz-qtext" id="quiz-qtext"></p>
+          <ul class="quiz-options" id="quiz-options"></ul>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="quiz-actions">
+          <button class="btn-finish" id="btn-finish" onclick="handleFinish()">
+            ✓ &nbsp;Hoàn thành
+          </button>
+          <div class="quiz-nav">
+            <button class="btn-prev" id="btn-prev" onclick="goQuestion(-1)">
+              ← Trước
+            </button>
+            <button class="btn-next" id="btn-next" onclick="goQuestion(1)">
+              Tiếp →
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- OVERLAY -->
+    <div id="overlay-quiz" class="overlay-quiz"></div>
+
+    <!-- POPUP XÁC NHẬN NỘP BÀI -->
+    <div id="popup-finish" class="popup-finish">
+      <div class="popup-finish__header">
+        <div class="popup-icon popup-icon--warn">?</div>
+        <h3>Xác nhận nộp bài</h3>
+      </div>
+      <div class="popup-finish__body">
+        <div class="stat-row">
+          <div class="stat-chip">
+            <div class="stat-chip__num" id="answered-count">0</div>
+            <div class="stat-chip__lbl">Đã trả lời</div>
+          </div>
+          <div class="stat-chip">
+            <div
+              class="stat-chip__num"
+              id="unanswered-count"
+              style="color: var(--danger)"
+            >
+              0
+            </div>
+            <div class="stat-chip__lbl">Chưa trả lời</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-chip__num" id="total-count">0</div>
+            <div class="stat-chip__lbl">Tổng câu hỏi</div>
+          </div>
+        </div>
+        <p>Bạn có chắc muốn nộp bài không? Hành động này không thể hoàn tác.</p>
+      </div>
+      <div class="popup-finish__footer">
+        <button class="btn-cancel-finish" onclick="closeFinishPopup()">
+          Tiếp tục làm
+        </button>
+        <button class="btn-confirm-finish" onclick="submitQuiz()">
+          Nộp bài ngay
+        </button>
+      </div>
+    </div>
+
+    <!-- POPUP CẢNH BÁO RỜI TRANG KHI ĐANG THI -->
+    <div id="popup-warning" class="popup-warning">
+      <div class="popup-warning__header">
+        <div class="popup-icon popup-icon--warn">⚠</div>
+        <h3>Bài thi chưa hoàn thành</h3>
+      </div>
+      <div class="popup-warning__body">
+        <p>
+          Bạn đang trong quá trình làm bài. Nếu rời đi, bài thi sẽ được
+          <strong>nộp và chấm điểm ngay</strong> trước khi thực hiện hành động.
+        </p>
+        <p>Bạn có muốn nộp bài và tiếp tục không?</p>
+      </div>
+      <div class="popup-warning__footer">
+        <button class="btn-cancel-warn" onclick="closeWarningPopup()">
+          Ở lại làm bài
+        </button>
+        <button class="btn-confirm-finish" onclick="confirmLeave()">
+          Nộp bài & rời đi
+        </button>
+      </div>
+    </div>
+
+    <!-- POPUP KẾT QUẢ -->
+    <div id="popup-result" class="popup-result">
+      <div class="popup-result__header">
+        <h3>Kết quả bài thi</h3>
+      </div>
+      <div class="popup-result__body">
+        <div class="result-ring">
+          <div class="result-score" id="result-score"></div>
+        </div>
+        <p class="result-detail" id="result-detail"></p>
+      </div>
+      <div class="popup-result__footer">
+        <button
+          class="btn-home"
+          onclick="window.location.href = '../pages/home.html'"
+        >
+          Về trang chủ
+        </button>
+      </div>
+    </div>
+
+    <footer>© 2025 Quiz App. All rights reserved.</footer>
+
+    <script src="../js/auth.js"></script>
+    <script>
+      checkAuth();
+    </script>
+    <script src="../js/quizz.js"></script>
+  </body>
+</html>

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng ký - QuizForge</title>
+    <link rel="stylesheet" href="../css/register.css" />
+    <script src="../js/register.js"></script>
+  </head>
+  <body>
+    <header class="header">
+      <h1>Trang Đăng Ký</h1>
+    </header>
+    <main class="main">
+      <section class="title">
+        <h2>Đăng Ký</h2>
+        <p>
+          QuizForge – Nền tảng sáng tạo bài kiểm tra trực tuyến, giúp bạn dễ
+          dàng thiết kế, chia sẻ và thực hiện các bài kiểm tra một cách nhanh
+          chóng và hiệu quả!
+        </p>
+      </section>
+
+      <section class="form-register">
+        <form action="">
+          <div class="register-box">
+            <input
+              type="text"
+              name="Tên Đăng Nhập"
+              id="name-register"
+              placeholder="Họ và tên"
+              class="input-center"
+            />
+            <p class="error-name">Tên Đăng Nhập Không Được Để Trống!</p>
+            <br />
+          </div>
+          <div class="register-box">
+            <input
+              type="text"
+              name="Địa chỉ Email"
+              id="email-register"
+              placeholder="Địa chỉ email"
+              class="input-center"
+            />
+            <p class="error-email">Email Đăng Ký Không Được Để Trống!</p>
+            <br />
+          </div>
+          <div class="register-box">
+            <input
+              type="password"
+              name="Mật Khẩu"
+              id="pass-register"
+              placeholder="Mật khẩu"
+              class="input-center"
+            />
+            <p class="error-pass">Mật Khẩu Đăng Ký Không Được Để Trống!</p>
+            <br />
+          </div>
+          <div class="register-box">
+            <input
+              type="password"
+              name="Xác nhận mật khẩu"
+              id="check-pass"
+              placeholder="Nhập lại mật khẩu"
+              class="input-center"
+            />
+            <p class="error-check-pass">Vui lòng nhập đúng mật khẩu đã nhập!</p>
+            <br />
+          </div>
+
+          <button type="button" id="btn-register" onclick="handleSubmit()">Đăng Ký</button>
+        </form>
+
+        <p class="login-link">
+          Đã có tài khoản?
+          <a href="../pages/login.html">Đăng Nhập</a>
+        </p>
+      </section>
+    </main>
+
+    <div id="popup-success" style="display: none;">
+      <div class="popup-box">
+        <p>Đăng ký thành công!</p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý danh mục</title>
+    <link rel="stylesheet" href="../css/category-manager.css" />
+  </head>
+  <body>
+    <header class="header">
+      <section class="logo">
+        <a href="../pages/home.html">QuizzForge</a>
+      </section>
+      <nav class="pages-link">
+        <a href="../pages/category-manager.html">Danh mục</a>
+        <a href="../pages/test-manager.html">Bài test</a>
+        <button type="button" onclick="handleLogOut()">Đăng xuất</button>
+      </nav>
+    </header>
+
+    <main class="main-content">
+      <h1 class="page-title">Quản lý danh mục</h1>
+
+      <button class="btn-add">Thêm danh mục</button>
+
+      <section class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th class="col-name">Tên danh mục</th>
+              <th class="col-action">Hành động</th>
+            </tr>
+          </thead>
+          <tbody class="list-category"></tbody>
+        </table>
+      </section>
+
+      <nav class="pagination"></nav>
+
+      <!-- POPUP THÊM / SỬA -->
+      <div class="overlay" id="overlay"></div>
+
+      <div class="popup" id="popup-form">
+        <div class="popup-header">
+          <h2 class="popup-title" id="popup-title">Thêm danh mục</h2>
+          <button class="popup-close" id="popup-close">&times;</button>
+        </div>
+        <div class="popup-body">
+          <div class="form-group">
+            <label>Tên danh mục</label>
+            <input
+              type="text"
+              id="category-name"
+              placeholder="Nhập tên danh mục..."
+            />
+            <span class="error-name"></span>
+          </div>
+          <div class="form-group">
+            <label>Icon danh mục</label>
+            <div class="file-input-wrapper">
+              <label for="category-img" class="btn-file"> 📁 Chọn Icon </label>
+              <input type="file" id="category-img" accept="image/*" />
+              <span class="file-name" id="file-name">Chưa chọn ảnh</span>
+            </div>
+            <img id="preview-img" src="" alt="preview" />
+            <p class="error-icon">Chưa chọn file icon!</p>
+          </div>
+        </div>
+        <div class="popup-footer">
+          <button class="btn-cancel" id="btn-cancel">Huỷ</button>
+          <button class="btn-save" id="btn-save">Lưu</button>
+        </div>
+      </div>
+
+      <!-- POPUP XÁC NHẬN XOÁ -->
+      <div class="popup popup-confirm" id="popup-confirm">
+        <div class="popup-header">
+          <h2 class="popup-title">Xác nhận xoá</h2>
+        </div>
+        <div class="popup-body">
+          <p>
+            Bạn có chắc muốn xoá danh mục
+            <strong id="confirm-name"></strong> không?
+          </p>
+        </div>
+        <div class="popup-footer">
+          <button class="btn-cancel" id="btn-cancel-delete">Huỷ</button>
+          <button class="btn-delete-confirm" id="btn-confirm-delete">
+            Xoá
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <footer>© 2025 QuizForge. All rights reserved.</footer>
+
+    <!-- OVERLAY ĐĂNG XUẤT -->
+    <div
+      id="overlay-logout"
+      class="overlay-play"
+      onclick="closeLogoutConfirm()"
+    ></div>
+
+    <!-- POPUP CONFIRM ĐĂNG XUẤT -->
+    <div id="popup-confirm-logout" class="popup-play">
+      <div class="popup-play__header">
+        <h3>Xác nhận đăng xuất</h3>
+        <button class="popup-play__close" onclick="closeLogoutConfirm()">
+          &times;
+        </button>
+      </div>
+      <div
+        class="popup-play__body"
+        style="justify-content: center; padding: 24px 18px"
+      >
+        <p
+          style="
+            font-size: 18px;
+            color: #333;
+            font-family: &quot;Inter&quot;, sans-serif;
+          "
+        >
+          Bạn có chắc chắn muốn đăng xuất không?
+        </p>
+      </div>
+      <div class="popup-play__footer">
+        <button class="popup-play__cancel" onclick="closeLogoutConfirm()">
+          Huỷ
+        </button>
+        <button class="btn-logout" onclick="confirmLogOut()">Đăng xuất</button>
+      </div>
+    </div>
+
+    <!-- POPUP ĐĂNG XUẤT THÀNH CÔNG -->
+    <div id="popup-logout">
+      <div class="popup-box">
+        <p>Đăng xuất thành công!</p>
+      </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/category-manager.js"></script>
+    <script>
+      checkAdmin();
+    </script>
+  </body>
+</html>

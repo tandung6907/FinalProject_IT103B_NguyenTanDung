@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trang Chủ</title>
+    <link rel="stylesheet" href="../css/home.css" />
+  </head>
+  <body>
+    <header class="header">
+      <section class="logo">
+        <a href="">QuizzForge</a>
+      </section>
+      <section class="search-bar">
+        <input
+          type="text"
+          id="search-test"
+          placeholder="Tìm kiếm bài test"
+          class="input-search"
+        />
+      </section>
+      <nav class="pages-link">
+        <a href="../pages/home.html">Trang Chủ</a>
+        <button onclick="handleLogOut()">Đăng Xuất</button>
+      </nav>
+    </header>
+
+    <main class="main">
+      <section class="title">
+        <h2>Hãy thử 1 câu đố ngẫu nhiên 🌐</h2>
+        <button id="btn-start">Play</button>
+      </section>
+
+      <section class="container">
+        <div class="sub-title">
+          <p>
+            <img src="../assets/icons/star-solid.png" alt="icon" class="icon" />
+          </p>
+          Các câu đố nổi bật
+        </div>
+
+        <div class="sort-by-turn">
+          <span>Sắp xếp theo:</span>
+          <button data-sort="asc">Lượt chơi tăng dần</button>
+          <button data-sort="desc">Lượt chơi giảm dần</button>
+        </div>
+
+        <div class="quiz-grid"></div>
+      </section>
+    </main>
+
+    <nav class="pagination"></nav>
+
+    <!-- OVERLAY PLAY -->
+    <div id="overlay-play" class="overlay-play"></div>
+
+    <!-- POPUP CHƠI -->
+    <div id="popup-play" class="popup-play">
+      <div class="popup-play__header">
+        <h3>Bắt đầu làm bài?</h3>
+        <button class="popup-play__close" onclick="closePlayPopup()">
+          &times;
+        </button>
+      </div>
+      <div class="popup-play__body">
+        <img
+          id="popup-test-thumb"
+          src=""
+          alt="thumb"
+          class="popup-play__thumb"
+          style="display: none"
+        />
+        <div class="popup-play__info">
+          <p class="popup-play__name" id="popup-test-name"></p>
+          <p class="popup-play__meta">
+            <img
+              id="popup-cat-icon"
+              src=""
+              alt="icon"
+              class="popup-cat-icon"
+              style="display: none"
+            />
+            <span id="popup-test-category"></span>
+          </p>
+          <p class="popup-play__meta">
+            ❓ <span id="popup-test-questions"></span> câu hỏi
+          </p>
+          <p class="popup-play__meta">
+            ⏱ <span id="popup-test-time"></span> phút
+          </p>
+        </div>
+      </div>
+      <div class="popup-play__footer">
+        <button class="popup-play__cancel" onclick="closePlayPopup()">
+          Huỷ
+        </button>
+        <button class="popup-play__confirm" id="popup-play-btn">
+          Tham gia
+        </button>
+      </div>
+    </div>
+
+    <!-- OVERLAY ĐĂNG XUẤT -->
+    <div
+      id="overlay-logout"
+      class="overlay-play"
+      onclick="closeLogoutConfirm()"
+    ></div>
+
+    <!-- POPUP CONFIRM ĐĂNG XUẤT -->
+    <div id="popup-confirm-logout" class="popup-play">
+      <div class="popup-play__header">
+        <h3>Xác nhận đăng xuất</h3>
+        <button class="popup-play__close" onclick="closeLogoutConfirm()">
+          &times;
+        </button>
+      </div>
+      <div
+        class="popup-play__body"
+        style="justify-content: center; padding: 24px 18px"
+      >
+        <p
+          style="
+            font-size: 18px;
+            color: #333;
+            font-family: &quot;Inter&quot;, sans-serif;
+          "
+        >
+          Bạn có chắc chắn muốn đăng xuất không?
+        </p>
+      </div>
+      <div class="popup-play__footer">
+        <button class="popup-play__cancel" onclick="closeLogoutConfirm()">
+          Huỷ
+        </button>
+        <button class="btn-logout" onclick="confirmLogOut()">Đăng xuất</button>
+      </div>
+    </div>
+
+    <!-- POPUP ĐĂNG XUẤT THÀNH CÔNG -->
+    <div id="popup-logout">
+      <div class="popup-box">
+        <p>Đăng xuất thành công!</p>
+      </div>
+    </div>
+
+    <footer>© 2025 Quiz App. All rights reserved.</footer>
+
+    <script src="../js/auth.js"></script>
+    <script>
+      checkAuth();
+    </script>
+    <script src="../js/home.js"></script>
+  </body>
+</html>

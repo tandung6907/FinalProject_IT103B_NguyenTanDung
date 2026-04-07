@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý bài test</title>
+    <link rel="stylesheet" href="../css/test-manager.css" />
+  </head>
+  <body>
+    <header class="header">
+      <section class="logo"><a href="">QuizzForge</a></section>
+      <nav class="pages-link">
+        <a href="../pages/category-manager.html">Danh mục</a>
+      </nav>
+    </header>
+
+    <main class="main-content">
+      <h1 class="page-title">Quản lý bài test</h1>
+
+      <div class="add-sort-search">
+        <a class="btn-add" href="../pages/test-add.html">Thêm bài test</a>
+        <div class="add-sort">
+          <select id="sort-select" class="sort">
+            <option value="">Sắp xếp theo</option>
+            <option value="asc">Tên A -> Z</option>
+            <option value="desc">Tên Z -> A</option>
+            <option value="ascT">Thời gian tăng</option>
+            <option value="descT">Thời gian giảm</option>
+          </select>
+          <input
+            type="text"
+            id="search-input"
+            class="search"
+            placeholder="Tìm kiếm theo tên"
+          />
+        </div>
+      </div>
+
+      <section class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th class="col-name">Tên bài test</th>
+              <th class="col-category">Danh mục</th>
+              <th class="col-questions">Số câu hỏi</th>
+              <th class="col-time">Thời gian</th>
+              <th class="col-action">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </section>
+
+      <nav class="pagination" id="pagination"></nav>
+    </main>
+
+    <!-- OVERLAY + POPUP -->
+    <div class="overlay" id="overlay">
+      <div class="popup">
+        <div class="popup-header">
+          <h2 class="popup-title">Xác nhận xoá</h2>
+        </div>
+        <div class="popup-body">
+          <p>
+            Bạn có chắc muốn xoá bài test
+            <strong id="confirm-name"></strong> không?
+          </p>
+        </div>
+        <div class="popup-footer">
+          <button class="btn-cancel" id="btn-cancel">Huỷ</button>
+          <button class="btn-delete-confirm" id="btn-confirm-delete">
+            Xoá
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <footer>© 2025 QuizForge. All rights reserved.</footer>
+
+    <script src="../js/test-manager.js"></script>
+  </body>
+</html>
+ 

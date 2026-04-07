@@ -1,0 +1,284 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url(../assets/fonts/Poppins/Poppins-Regular.ttf) format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url(../assets/fonts/Poppins/Poppins-Bold.ttf) format("truetype");
+  font-weight: 600;
+  font-display: swap;
+}
+
+body {
+  background-color: #f8fafc;
+}
+
+.header {
+  background-color: black;
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+}
+
+.header h1 {
+  color: white;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.2px;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 965px;
+  width: 100%;
+}
+
+.title {
+  width: 533px;
+  height: 170px;
+  text-align: center;
+  margin-top: 123px;
+}
+
+.title h2 {
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 62px;
+  letter-spacing: -2px;
+  padding-bottom: 20px;
+}
+
+.title p {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 30px;
+  letter-spacing: 0px;
+}
+
+.form-login {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 533px;
+  height: 484px;
+  margin-top: 20px;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.login-box {
+  margin-bottom: 24px;
+}
+
+.login-box label {
+  display: block;
+  font-weight: 400;
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: #000000;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 16px 20px;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.login-box .input-center {
+  text-align: center;
+}
+
+.login-box input:focus {
+  border-color: plum;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.login-box input::placeholder {
+  font-size: 16px;
+}
+
+p.error-login {
+  width: 100%;
+  border-radius: 12px;
+  display: none;
+  font-size: 18px;
+  color: red;
+  text-shadow:
+    0 0 3px rgb(244, 149, 149),
+    0 0 3px rgb(244, 149, 149),
+    0 0 3px rgb(244, 149, 149),
+    0 0 3px rgb(244, 149, 149),
+    0 0 3px rgb(244, 149, 149);
+  transition: all 0.3s ease;
+}
+
+#btn-login {
+  width: 100%;
+  padding: 16px;
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-top: 10px;
+}
+
+#btn-login:hover {
+  background-color: #0052cc;
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 14px;
+  color: #71717a;
+}
+
+.register-link a {
+  color: #0d6efd;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header h1 {
+    font-size: 24px;
+    padding-left: 16px;
+  }
+
+  .main {
+    height: auto;
+    padding: 20px;
+  }
+
+  .title {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    margin-top: 60px;
+  }
+
+  .title h2 {
+    font-size: 36px;
+    line-height: 44px;
+  }
+
+  .title p {
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .form-login {
+    max-width: 400px;
+    height: auto;
+    padding: 30px 20px;
+  }
+
+  .login-box label {
+    font-size: 16px;
+  }
+
+  .login-box input {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .login-box input::placeholder {
+    font-size: 14px;
+  }
+
+  p.error-login {
+    font-size: 16px;
+  }
+
+  #btn-login {
+    padding: 14px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    height: 40px;
+  }
+
+  .header h1 {
+    font-size: 20px;
+    padding-left: 12px;
+  }
+
+  .main {
+    padding: 16px;
+  }
+
+  .title {
+    margin-top: 40px;
+  }
+
+  .title h2 {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .title p {
+    font-size: 14px;
+    line-height: 22px;
+  }
+
+  .form-login {
+    max-width: 100%;
+    padding: 24px 16px;
+  }
+
+  .login-box label {
+    font-size: 15px;
+  }
+
+  .login-box input {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .login-box input::placeholder {
+    font-size: 13px;
+  }
+
+  p.error-login {
+    font-size: 14px;
+  }
+
+  #btn-login {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .register-link {
+    font-size: 13px;
+  }
+}

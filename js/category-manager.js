@@ -41,7 +41,7 @@ window.onload = function () {
   popupConfirm = document.getElementById("popup-confirm");
   previewImg = document.getElementById("preview-img");
   fileName = document.getElementById("file-name");
-  currentBase64Img = "";
+  currentBase64Img = ""; // biến lưu base64 của ảnh hiện tại (dùng để validate và giữ nguyên khi sửa)
 
   errorIcon = document.querySelector(".error-icon");
 
@@ -69,19 +69,19 @@ window.onload = function () {
 
   // Preview ảnh
   categoryImg.addEventListener("change", function () {
-    const file = categoryImg.files[0];
+    const file = categoryImg.files[0]; // lấy file từ input
     if (!file) {
       currentBase64Img = "";
       return;
-    }
+    } // nếu không có file nào được chọn thì reset và dừng
     fileName.textContent = file.name;
-    const reader = new FileReader();
+    const reader = new FileReader(); // Đọc file bằng FileReader - đọc file cục bộ không cân upload lên server
     reader.onload = (e) => {
-      currentBase64Img = e.target.result;
-      previewImg.src = currentBase64Img;
-      previewImg.style.display = "block";
+      currentBase64Img = e.target.result; // lưu chuỗi base64
+      previewImg.src = currentBase64Img; // gán vào thẻ img
+      previewImg.style.display = "block"; // hiển thị thẻ img khi đã có ảnh
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // 
   });
 
   renderCategories();
@@ -231,6 +231,7 @@ function renderCategories() {
 
   if (categories.length === 0) {
     listCategory.innerHTML = `<tr><td colspan="3" class="empty-state">Chưa có danh mục nào...!!!</td></tr>`;
+    totalPages.style.display = "none";
   } else {
     listCategory.innerHTML = "";
     pageData.forEach((p) => {

@@ -506,6 +506,11 @@ function showExcelStatus(message, isError = false) {
 }
 
 function handleExcelImport(event) {
+  if (typeof XLSX === "undefined") {
+    showExcelStatus("Chưa nạp được thư viện đọc Excel. Vui lòng kiểm tra kết nối internet.", true);
+    return;
+  }
+
   const file = event.target.files[0];
   if (!file) {
     showExcelStatus("Không có file Excel được chọn.", true);
@@ -522,10 +527,26 @@ function handleExcelImport(event) {
       const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
       importQuestionsFromExcel(rows);
     } catch (error) {
-      showExcelStatus("Không thể đọc file Excel. Vui lòng kiểm tra định dạng.", true);
+      showExcelStatus("Không thể đọc file Excel. Vui lòng kiểm tra định dạng hoặc thử file khác.", true);
     }
   };
   reader.readAsArrayBuffer(file);
+}
+
+function getRowValue(row, aliases) {
+  const normalized = Object.keys(row).reduce((acc, key) => {
+    const normalizedKey = String(key || "").trim().toLowerCase().replace(/\s+/g, " ");
+    acc[normalizedKey] = row[key];
+    return acc;
+  }, {});
+
+  for (const alias of aliases) {
+    const normalizedAlias = String(alias || "").trim().toLowerCase().replace(/\s+/g, " ");
+    if (normalizedAlias in normalized) {
+      return normalized[normalizedAlias];
+    }
+  }
+  return "";
 }
 
 function importQuestionsFromExcel(rows) {
@@ -535,15 +556,28 @@ function importQuestionsFromExcel(rows) {
   }
 
   const imported = [];
-  rows.forEach((row, index) => {
-    const questionText = String(row.Question || row.question || "").trim();
+  rows.forEach((row) => {
+    const questionText = String(
+      getRowValue(row, ["Question", "question", "Câu hỏi", "cau hoi", "noi dung"]))
+      .trim();
     if (!questionText) return;
 
-    const typeValue = String(row.Type || row.type || "").trim().toLowerCase();
-    const isEssay = typeValue.includes("essay") || typeValue.includes("tự luận") || typeValue.includes("tu luan");
+    const typeValue = String(
+      getRowValue(row, ["Type", "type", "Loại", "loai", "Hình thức", "hinh thuc", "Kiểu", "kieu"])
+    )
+      .trim()
+      .toLowerCase();
+    const isEssay =
+      typeValue.includes("essay") ||
+      typeValue.includes("tự luận") ||
+      typeValue.includes("tu luan") ||
+      typeValue.includes("trac luan") ||
+      typeValue.includes("tự luận");
 
     if (isEssay) {
-      const answerText = String(row.Answer || row.answer || "").trim();
+      const answerText = String(
+        getRowValue(row, ["Answer", "answer", "Đáp án", "dap an", "Kết quả", "ket qua"])
+      ).trim();
       imported.push({
         id: nextQuesId++,
         name: questionText,
@@ -553,23 +587,36 @@ function importQuestionsFromExcel(rows) {
       return;
     }
 
-    const options = ["A", "B", "C", "D"].map((letter) => {
-      const text = String(row[`Option ${letter}`] || row[`option ${letter}`] || "").trim();
-      return text ? { id: Date.now() + Math.random(), text, isCorrect: false } : null;
-    }).filter(Boolean);
+    const optionKeys = [
+      ["Option A", "option a", "A", "a", "Đáp án A", "dap an a"],
+      ["Option B", "option b", "B", "b", "Đáp án B", "dap an b"],
+      ["Option C", "option c", "C", "c", "Đáp án C", "dap an c"],
+      ["Option D", "option d", "D", "d", "Đáp án D", "dap an d"],
+    ];
+    const options = optionKeys
+      .map((keys) => {
+        const text = String(getRowValue(row, keys)).trim();
+        return text ? { id: Date.now() + Math.random(), text, isCorrect: false } : null;
+      })
+      .filter(Boolean);
 
     if (options.length < 2) {
       return;
     }
 
-    const correctValue = String(row.Correct || row.correct || "").trim().toLowerCase();
+    const correctValue = String(
+      getRowValue(row, ["Correct", "correct", "Đáp án đúng", "dap an dung", "Answer", "answer"])
+    )
+      .trim()
+      .toLowerCase();
+
     let correctAssigned = false;
     options.forEach((option) => {
+      const optionText = String(option.text || "").trim().toLowerCase();
       if (
-        correctValue === option.text.trim().toLowerCase() ||
-        correctValue === option.text.trim().charAt(0).toLowerCase() ||
-        correctValue === option.text.trim().slice(0, 1).toLowerCase() ||
-        correctValue === option.text.trim().toLowerCase()
+        correctValue === optionText ||
+        correctValue === optionText.charAt(0) ||
+        correctValue === optionText.slice(0, 1)
       ) {
         option.isCorrect = true;
         correctAssigned = true;

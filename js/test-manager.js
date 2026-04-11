@@ -239,6 +239,11 @@ window.addEventListener("storage", async (e) => {
   }
 });
 
+window.addEventListener("focus", async () => {
+  tests = await loadTests();
+  renderTable();
+});
+
 async function initTestManager() {
   tests = await loadTests();
   categories = loadCategories();

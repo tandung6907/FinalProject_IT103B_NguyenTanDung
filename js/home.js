@@ -304,6 +304,19 @@ function addAdminNav() {
 // INITS
 addAdminNav();
 
+// LẮNG NGHE SỰ KIỆN LƯU THÊM TỪ TEST ADD
+window.addEventListener("storage", async (e) => {
+  if (e.key === TEST_KEY) {
+    tests = await loadTests();
+    renderCards();
+  }
+});
+
+window.addEventListener("focus", async () => {
+  tests = await loadTests();
+  renderCards();
+});
+
 async function initHome() {
   tests = await loadTests();
   categories = loadCategories();

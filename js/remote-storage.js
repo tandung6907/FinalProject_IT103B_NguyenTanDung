@@ -1,11 +1,9 @@
 // Remote storage using Vercel serverless functions or GitHub API
 // Auto-detect environment
 
-const API_BASE_URL = window.location.origin; // Vercel domain or localhost
+const API_BASE_URL = window.location.origin || ''; // Vercel domain or localhost
 const AUTH_TOKEN = "demo-token"; // In production, use proper auth
-const USE_VERCEL =
-  API_BASE_URL.includes("vercel.app") ||
-  API_BASE_URL.includes("localhost:3000");
+const USE_VERCEL = API_BASE_URL.includes("vercel.app");
 
 // Tests functions
 async function loadRemoteTestsFromGithub() {

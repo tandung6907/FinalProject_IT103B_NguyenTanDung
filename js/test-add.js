@@ -391,7 +391,7 @@ function renderQuestions() {
         <td class="col-name">
           <div class="question-cell">
             <span class="question-text">${q.name}</span>
-            <span class="answer-count">${q.answers.length} đáp án</span>
+            <span class="answer-count">${q.answers ? q.answers.length + " đáp án" : "Tự luận"}</span>
           </div>
         </td>
         <td class="col-action">
@@ -507,7 +507,10 @@ function showExcelStatus(message, isError = false) {
 
 function handleExcelImport(event) {
   if (typeof XLSX === "undefined") {
-    showExcelStatus("Chưa nạp được thư viện đọc Excel. Vui lòng kiểm tra kết nối internet.", true);
+    showExcelStatus(
+      "Chưa nạp được thư viện đọc Excel. Vui lòng kiểm tra kết nối internet.",
+      true,
+    );
     return;
   }
 
@@ -527,23 +530,33 @@ function handleExcelImport(event) {
       const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
       importQuestionsFromExcel(rows);
     } catch (error) {
-      showExcelStatus("Không thể đọc file Excel. Vui lòng kiểm tra định dạng hoặc thử file khác.", true);
+      showExcelStatus(
+        "Không thể đọc file Excel. Vui lòng kiểm tra định dạng hoặc thử file khác.",
+        true,
+      );
     }
   };
   reader.readAsArrayBuffer(file);
 }
 
-function getRowValue(row, aliases) {
-  const normalized = Object.keys(row).reduce((acc, key) => {
-    const normalizedKey = String(key || "").trim().toLowerCase().replace(/\s+/g, " ");
-    acc[normalizedKey] = row[key];
-    return acc;
-  }, {});
+// Chuẩn hóa key của row: trim + lowercase + collapse spaces
+function normalizeKey(key) {
+  return String(key ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
 
+// Lấy giá trị từ row theo danh sách alias (so khớp sau khi normalize)
+function getRowValue(row, aliases) {
+  const normalizedRow = {};
+  for (const key of Object.keys(row)) {
+    normalizedRow[normalizeKey(key)] = row[key];
+  }
   for (const alias of aliases) {
-    const normalizedAlias = String(alias || "").trim().toLowerCase().replace(/\s+/g, " ");
-    if (normalizedAlias in normalized) {
-      return normalized[normalizedAlias];
+    const k = normalizeKey(alias);
+    if (k in normalizedRow) {
+      return normalizedRow[k];
     }
   }
   return "";
@@ -556,90 +569,150 @@ function importQuestionsFromExcel(rows) {
   }
 
   const imported = [];
-  rows.forEach((row) => {
-    const questionText = String(
-      getRowValue(row, ["Question", "question", "Câu hỏi", "cau hoi", "noi dung"]))
-      .trim();
-    if (!questionText) return;
 
-    const typeValue = String(
-      getRowValue(row, ["Type", "type", "Loại", "loai", "Hình thức", "hinh thuc", "Kiểu", "kieu"])
+  rows.forEach((row) => {
+    // ── 1. Lấy nội dung câu hỏi (cột Question) ──────────────────────────────
+    const questionText = String(
+      getRowValue(row, [
+        "Question",
+        "question",
+        "Câu hỏi",
+        "cau hoi",
+        "noi dung",
+      ]),
+    ).trim();
+
+    if (!questionText) return; // bỏ qua dòng trống
+
+    // ── 2. Xác định loại câu hỏi (cột Type) ─────────────────────────────────
+    //    File Excel dùng: "Multiple Choice", "Essay", "Essay – Grammar", v.v.
+    const typeRaw = String(
+      getRowValue(row, [
+        "Type",
+        "type",
+        "Loại",
+        "loai",
+        "Hình thức",
+        "hinh thuc",
+        "Kiểu",
+        "kieu",
+      ]),
     )
       .trim()
       .toLowerCase();
-    const isEssay =
-      typeValue.includes("essay") ||
-      typeValue.includes("tự luận") ||
-      typeValue.includes("tu luan") ||
-      typeValue.includes("trac luan") ||
-      typeValue.includes("tự luận");
 
+    const isEssay =
+      typeRaw.includes("essay") ||
+      typeRaw.includes("tự luận") ||
+      typeRaw.includes("tu luan");
+
+    // ── 3. Xử lý câu tự luận ────────────────────────────────────────────────
     if (isEssay) {
+      // Cột Answer chứa gợi ý đáp án / rubric chấm điểm
       const answerText = String(
-        getRowValue(row, ["Answer", "answer", "Đáp án", "dap an", "Kết quả", "ket qua"])
+        getRowValue(row, [
+          "Answer",
+          "answer",
+          "Đáp án",
+          "dap an",
+          "Kết quả",
+          "ket qua",
+        ]),
       ).trim();
+
       imported.push({
         id: nextQuesId++,
         name: questionText,
         type: "essay",
-        answer: answerText,
+        answers: [{ text: answerText, isCorrect: true }],
       });
       return;
     }
 
-    const optionKeys = [
-      ["Option A", "option a", "A", "a", "Đáp án A", "dap an a"],
-      ["Option B", "option b", "B", "b", "Đáp án B", "dap an b"],
-      ["Option C", "option c", "C", "c", "Đáp án C", "dap an c"],
-      ["Option D", "option d", "D", "d", "Đáp án D", "dap an d"],
+    // ── 4. Xử lý câu trắc nghiệm ────────────────────────────────────────────
+    // 4a. Đọc 4 options (cột Option A → Option D)
+    const optionDefs = [
+      { keys: ["Option A", "option a"], label: "A" },
+      { keys: ["Option B", "option b"], label: "B" },
+      { keys: ["Option C", "option c"], label: "C" },
+      { keys: ["Option D", "option d"], label: "D" },
     ];
-    const options = optionKeys
-      .map((keys) => {
-        const text = String(getRowValue(row, keys)).trim();
-        return text ? { id: Date.now() + Math.random(), text, isCorrect: false } : null;
+
+    // Gán id tạm bằng timestamp + offset để tránh trùng khi nhiều câu hỏi
+    const baseId = Date.now();
+    const options = optionDefs
+      .map((def, idx) => {
+        const text = String(getRowValue(row, def.keys)).trim();
+        if (!text || text.toUpperCase() === "N/A") return null;
+        return {
+          id: baseId + idx,
+          label: def.label, // "A" | "B" | "C" | "D"
+          text,
+          isCorrect: false,
+        };
       })
       .filter(Boolean);
 
-    if (options.length < 2) {
-      return;
-    }
+    if (options.length < 2) return; // không đủ đáp án → bỏ qua
 
-    const correctValue = String(
-      getRowValue(row, ["Correct", "correct", "Đáp án đúng", "dap an dung", "Answer", "answer"])
+    // 4b. Đọc cột Correct (chứa chữ cái: A / B / C / D)
+    //     TÁCH BIỆT hoàn toàn với cột Answer (chứa text đầy đủ của đáp án đúng)
+    const correctLetter = String(
+      getRowValue(row, ["Correct", "correct", "Đáp án đúng", "dap an dung"]),
     )
       .trim()
-      .toLowerCase();
+      .toUpperCase(); // chuẩn hóa thành chữ HOA: "A", "B", "C", "D"
 
+    // 4c. Map chữ cái → option tương ứng
+    //     Ưu tiên 1: khớp trực tiếp label ("A" → option có label "A")
+    //     Ưu tiên 2: fallback về option đầu tiên nếu không tìm thấy
     let correctAssigned = false;
-    options.forEach((option) => {
-      const optionText = String(option.text || "").trim().toLowerCase();
-      if (
-        correctValue === optionText ||
-        correctValue === optionText.charAt(0) ||
-        correctValue === optionText.slice(0, 1)
-      ) {
-        option.isCorrect = true;
-        correctAssigned = true;
-      }
-    });
 
-    if (!correctAssigned) {
-      const letterIndex = ["a", "b", "c", "d"].indexOf(correctValue);
-      if (letterIndex >= 0 && options[letterIndex]) {
-        options[letterIndex].isCorrect = true;
+    if (correctLetter) {
+      const matched = options.find((o) => o.label === correctLetter);
+      if (matched) {
+        matched.isCorrect = true;
         correctAssigned = true;
       }
     }
 
+    // Fallback: nếu cột Correct bị bỏ trống hoặc không hợp lệ,
+    // thử dùng cột Answer để so khớp text với các options
+    if (!correctAssigned) {
+      const answerText = String(
+        getRowValue(row, ["Answer", "answer", "Đáp án", "dap an"]),
+      )
+        .trim()
+        .toLowerCase();
+
+      if (answerText && answerText !== "n/a") {
+        const matched = options.find(
+          (o) => o.text.toLowerCase() === answerText,
+        );
+        if (matched) {
+          matched.isCorrect = true;
+          correctAssigned = true;
+        }
+      }
+    }
+
+    // Fallback cuối: đánh dấu option đầu tiên
     if (!correctAssigned) {
       options[0].isCorrect = true;
     }
+
+    // 4d. Chuẩn hóa: bỏ trường label (chỉ dùng nội bộ để map), giữ id/text/isCorrect
+    const answers = options.map(({ id, text, isCorrect }) => ({
+      id,
+      text,
+      isCorrect,
+    }));
 
     imported.push({
       id: nextQuesId++,
       name: questionText,
       type: "mcq",
-      answers: options,
+      answers,
     });
   });
 

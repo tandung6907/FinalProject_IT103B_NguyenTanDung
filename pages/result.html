@@ -1,0 +1,84 @@
+﻿<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kết quả bài thi</title>
+    <link rel="stylesheet" href="../css/home.css" />
+  </head>
+  <body>
+    <header class="header">
+      <section class="logo">
+        <a href="">QuizzForge</a>
+      </section>
+      <section class="search-bar">
+        <input
+          type="text"
+          id="page-search"
+          placeholder="Tìm kiếm..."
+          class="input-search"
+        />
+      </section>
+      <nav class="pages-link">
+        <a href="../pages/home.html">Trang Chủ</a>
+        <a href="../pages/result.html">Kết Quả</a>
+      </nav>
+    </header>
+
+    <main class="main">
+      <section class="title" style="height:auto; padding: 24px;">
+        <h2>Quản lý kết quả làm bài</h2>
+        <p style="color:#f8f9fa; font-size:16px; max-width:760px; margin-top:10px;">
+          Admin có thể xem toàn bộ kết quả, lọc trạng thái và chấm bài tự luận ngay trên trang này.
+        </p>
+      </section>
+
+      <section class="container">
+        <div class="result-actions">
+          <div class="result-search-group">
+            <input id="search-result" type="text" placeholder="Tìm kiếm theo tên người làm hoặc tên bài test" />
+          </div>
+          <div class="result-filter-group">
+            <select id="filter-status">
+              <option value="">Tất cả trạng thái</option>
+              <option value="pending">Chờ chấm</option>
+              <option value="graded">Đã chấm</option>
+            </select>
+            <button id="refresh-results">Làm mới</button>
+          </div>
+        </div>
+
+        <div class="result-layout">
+          <div class="result-list">
+            <table class="result-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Bài test</th>
+                  <th>Người làm</th>
+                  <th>Điểm</th>
+                  <th>Trạng thái</th>
+                  <th>Thời gian</th>
+                  <th>Hành động</th>
+                </tr>
+              </thead>
+              <tbody id="results-table-body"></tbody>
+            </table>
+          </div>
+
+          <div class="result-detail-panel" id="result-detail-panel">
+            <p class="empty-detail">Chọn một kết quả để xem chi tiết và chấm bài.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>© 2025 Quiz App. All rights reserved.</footer>
+
+    <script src="../js/auth.js"></script>
+    <script>
+      checkAdmin();
+    </script>
+    <script src="../js/result.js"></script>
+  </body>
+</html>

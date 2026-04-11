@@ -284,6 +284,13 @@ function addAdminNav() {
   const user = JSON.parse(sessionStorage.getItem("currentUser") || "{}");
   if (user.role === "admin") {
     const nav = document.querySelector(".pages-link");
+
+    const resultBtn = document.createElement("a");
+    resultBtn.href = "../pages/result.html";
+    resultBtn.textContent = "Kết quả";
+    resultBtn.style.marginRight = "15px";
+    nav.insertBefore(resultBtn, nav.lastElementChild);
+
     const managementBtn = document.createElement("a");
     managementBtn.href = "../pages/category-manager.html";
     managementBtn.textContent = "Quản Lý";

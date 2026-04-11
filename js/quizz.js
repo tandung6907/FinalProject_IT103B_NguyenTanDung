@@ -1,4 +1,5 @@
 const TEST_KEY = "tests";
+const RESULT_KEY = "quizResults";
 
 let currentTest = null;
 let questions = [];
@@ -8,6 +9,25 @@ let timerInterval = null;
 let remainingSeconds = 0;
 let quizSubmitted = false;
 
+function getQuizTimerKey(id) {
+  return `quiz-remaining-${id}`;
+}
+
+function loadSavedRemainingSeconds(id) {
+  const raw = sessionStorage.getItem(getQuizTimerKey(id));
+  if (!raw) return null;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function saveRemainingSeconds(id, seconds) {
+  sessionStorage.setItem(getQuizTimerKey(id), String(seconds));
+}
+
+function clearSavedRemainingSeconds(id) {
+  sessionStorage.removeItem(getQuizTimerKey(id));
+}
+
 function escapeHtml(str) {
   return String(str || "")
     .replace(/&/g, "&amp;")
@@ -16,7 +36,70 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;");
 }
 
-// Hành động pending khi popup cảnh báo hiện ra ("logout" hoặc "home")
+function loadQuizResults() {
+  const data = localStorage.getItem(RESULT_KEY);
+  return data ? JSON.parse(data) : [];
+}
+
+function saveQuizResults(results) {
+  localStorage.setItem(RESULT_KEY, JSON.stringify(results));
+}
+
+function saveQuizResult(entry) {
+  const allResults = loadQuizResults();
+  allResults.unshift(entry);
+  saveQuizResults(allResults);
+}
+
+function createQuizResultRecord(user, totalQuestions, answered, correct, totalMCQ, essayCount) {
+  const answersData = questions.map((q) => {
+    if (q.type === "essay") {
+      return {
+        id: q.id,
+        type: "essay",
+        name: q.name,
+        userText: String(answers[q.id] || "").trim(),
+        modelAnswer:
+          q.answer ||
+          (q.answers && q.answers.find((a) => a.isCorrect)?.text) ||
+          "",
+      };
+    }
+
+    const opts = (q.answers || []).map((a) => String(a.text || ""));
+    return {
+      id: q.id,
+      type: "mcq",
+      name: q.name,
+      options: opts,
+      correctIdx: (q.answers || []).findIndex((a) => a.isCorrect === true),
+      userIdx:
+        answers[q.id] === undefined || answers[q.id] === null
+          ? null
+          : Number(answers[q.id]),
+    };
+  });
+
+  return {
+    id: Date.now(),
+    testId: currentTest.id,
+    testName: currentTest.name,
+    userId: user.id || null,
+    userName: user.name || "Khách",
+    userEmail: user.email || "",
+    score100: totalMCQ > 0 ? Math.round((correct / totalMCQ) * 100 * 100) / 100 : 0,
+    correctMCQ: correct,
+    totalMCQ,
+    totalQuestions,
+    answeredCount: answered,
+    essayCount,
+    createdAt: new Date().toISOString(),
+    status: "pending",
+    adminNote: "",
+    answers: answersData,
+  };
+}
+
 let pendingAction = null;
 
 async function loadStaticTests() {
@@ -65,8 +148,13 @@ window.onload = async function () {
   document.getElementById("total-time-val").textContent =
     `${currentTest.time} phút`;
 
-  // Dùng Math.round để tránh phần lẻ giây (ví dụ 0.36 * 60 = 21.6 → 22s)
-  remainingSeconds = Math.round(parseFloat(currentTest.time) * 60);
+  const saved = loadSavedRemainingSeconds(id);
+  remainingSeconds = saved !== null ? Math.max(0, saved) : Math.round(parseFloat(currentTest.time) * 60);
+
+  if (remainingSeconds <= 0) {
+    submitQuiz();
+    return;
+  }
 
   startTimer();
   renderNavGrid();
@@ -82,11 +170,15 @@ function startTimer() {
   updateCountdown();
   timerInterval = setInterval(() => {
     remainingSeconds--;
-    updateCountdown();
     if (remainingSeconds <= 0) {
+      remainingSeconds = 0;
+      updateCountdown();
       clearInterval(timerInterval);
       submitQuiz();
+      return;
     }
+    saveRemainingSeconds(currentTest.id, remainingSeconds);
+    updateCountdown();
   }, 1000);
 }
 
@@ -100,11 +192,8 @@ function updateCountdown() {
   el.textContent = `${m}:${s}`;
 
   block.classList.remove("timer--danger", "timer--warning");
-  if (remainingSeconds <= 60) {
-    block.classList.add("timer--danger");
-  } else if (remainingSeconds <= 180) {
-    block.classList.add("timer--warning");
-  }
+  if (remainingSeconds <= 60) block.classList.add("timer--danger");
+  else if (remainingSeconds <= 180) block.classList.add("timer--warning");
 }
 
 // RENDER NAV GRID
@@ -131,7 +220,6 @@ function renderQuestion() {
   document.getElementById("quiz-qnum").textContent =
     `Câu ${currentIndex + 1} / ${total}`;
 
-  // Progress bar
   const pct = ((currentIndex + 1) / total) * 100;
   document.getElementById("progress-fill").style.width = `${pct}%`;
 
@@ -196,11 +284,10 @@ function jumpTo(idx) {
 
 // OVERLAY CLICK
 function handleOverlayClick() {
-  // Chỉ đóng popup finish khi click overlay, không đóng result / warning
   closeFinishPopup();
 }
 
-// POPUP FINISH (xác nhận nộp)
+// POPUP FINISH
 function handleFinish() {
   const answered = Object.keys(answers).length;
   const unanswered = questions.length - answered;
@@ -223,7 +310,7 @@ function closeFinishPopup() {
   }
 }
 
-// POPUP CẢNH BÁO (rời trang khi chưa nộp)
+// POPUP CẢNH BÁO
 function showWarningPopup(action) {
   pendingAction = action;
   showOverlay();
@@ -237,26 +324,19 @@ function closeWarningPopup() {
 }
 
 function confirmLeave() {
-  // Nộp bài trước rồi thực hiện hành động sau
   document.getElementById("popup-warning").classList.remove("active");
   submitQuiz(pendingAction);
 }
 
-// ĐĂNG XUẤT / TRANG CHỦ (chặn khi đang thi)
+// ĐĂNG XUẤT / TRANG CHỦ
 function handleHome() {
-  if (!quizSubmitted) {
-    showWarningPopup("home");
-  } else {
-    window.location.href = "../pages/home.html";
-  }
+  if (!quizSubmitted) showWarningPopup("home");
+  else window.location.href = "../pages/home.html";
 }
 
 function logOut() {
-  if (!quizSubmitted) {
-    showWarningPopup("logout");
-  } else {
-    doLogout();
-  }
+  if (!quizSubmitted) showWarningPopup("logout");
+  else doLogout();
 }
 
 function doLogout() {
@@ -265,16 +345,11 @@ function doLogout() {
 }
 
 // TÍNH ĐIỂM
+// Câu essay KHÔNG tự chấm — chỉ tính câu trắc nghiệm
 function calcScore() {
   let correct = 0;
   questions.forEach((q) => {
-    if (q.type === "essay") {
-      const text = String(answers[q.id] || "").trim();
-      if (text && q.answer && text.toLowerCase() === String(q.answer).trim().toLowerCase()) {
-        correct++;
-      }
-      return;
-    }
+    if (q.type === "essay") return; // bỏ qua, giáo viên chấm thủ công
 
     const chosenIdx = answers[q.id];
     if (chosenIdx === undefined) return;
@@ -282,6 +357,11 @@ function calcScore() {
     if (chosen && chosen.isCorrect === true) correct++;
   });
   return correct;
+}
+
+// Đếm riêng câu trắc nghiệm để tính điểm đúng
+function countMCQ() {
+  return questions.filter((q) => q.type !== "essay").length;
 }
 
 // NỘP BÀI
@@ -292,18 +372,40 @@ function submitQuiz(afterAction) {
 
   const total = questions.length;
   const answered = Object.keys(answers).length;
+  const mcqTotal = countMCQ();
   const correct = calcScore();
-  const score100 =
-    total > 0 ? Math.round((correct / total) * 100 * 100) / 100 : 0;
-  const pct = Math.round((correct / total) * 100);
 
-  // Ring percentage dùng CSS custom property
+  // Tính điểm chỉ trên phần trắc nghiệm
+  const score100 =
+    mcqTotal > 0 ? Math.round((correct / mcqTotal) * 100 * 100) / 100 : 0;
+  const pct = mcqTotal > 0 ? Math.round((correct / mcqTotal) * 100) : 0;
+
+  const currentUser = JSON.parse(sessionStorage.getItem("currentUser") || "{}");
+  const resultRecord = createQuizResultRecord(
+    currentUser,
+    total,
+    answered,
+    correct,
+    mcqTotal,
+    total - mcqTotal,
+  );
+  saveQuizResult(resultRecord);
+
   document.getElementById("popup-result").style.setProperty("--pct", `${pct}%`);
   document.getElementById("result-score").textContent = `${score100}/100`;
-  document.getElementById("result-detail").innerHTML =
-    `Đúng <strong style="color:var(--primary)">${correct}</strong> / ${total} câu &nbsp;·&nbsp; Đã trả lời ${answered} / ${total} câu`;
 
-  // Điều chỉnh nút "Về trang chủ" nếu cần logout sau khi nộp
+  const essayCount = total - mcqTotal;
+  const essayNote =
+    essayCount > 0
+      ? ` &nbsp;·&nbsp; <span style="color:var(--warning, #f59e0b)">${essayCount} câu tự luận sẽ được giáo viên chấm sau</span>`
+      : "";
+
+  document.getElementById("result-detail").innerHTML =
+    `Điểm hiện tại chỉ tính phần trắc nghiệm: <strong style="color:var(--primary)">${score100}/100</strong>.` +
+    ` <br>Đúng ${correct} / ${mcqTotal} câu trắc nghiệm` +
+    ` &nbsp;·&nbsp; Đã trả lời ${answered} / ${total} câu` +
+    essayNote;
+
   const btnHome = document.querySelector(".btn-home");
   if (afterAction === "logout") {
     btnHome.textContent = "Đăng xuất";
@@ -315,8 +417,102 @@ function submitQuiz(afterAction) {
     };
   }
 
+  clearSavedRemainingSeconds(currentTest.id);
   showOverlay();
   document.getElementById("popup-result").classList.add("active");
+}
+
+// XEM LẠI ĐÁP ÁN SAU KHI NỘP
+function renderReview() {
+  // Tìm hoặc tạo container review trong popup-result body
+  let reviewEl = document.getElementById("result-review");
+  const resultBody = document.querySelector("#popup-result .popup-result__body");
+  if (!resultBody) return;
+
+  if (!reviewEl) {
+    reviewEl = document.createElement("div");
+    reviewEl.id = "result-review";
+    resultBody.appendChild(reviewEl);
+  }
+
+  reviewEl.innerHTML = `
+    <div class="review-header">
+      <h3 class="review-title">Xem lại đáp án</h3>
+    </div>
+    <div class="review-list">
+      ${questions.map((q, idx) => renderReviewItem(q, idx)).join("")}
+    </div>`;
+}
+
+function renderReviewItem(q, idx) {
+  const isEssay = q.type === "essay";
+  const userAnswer = answers[q.id];
+
+  if (isEssay) {
+    // Lấy đáp án mẫu từ answers[0].text (cách lưu của file Excel import)
+    const modelAnswer =
+      q.answers && q.answers[0] && q.answers[0].text
+        ? q.answers[0].text
+        : q.answer || "";
+
+    const userText = String(userAnswer || "").trim();
+
+    return `
+      <div class="review-item review-item--essay">
+        <div class="review-qnum">Câu ${idx + 1} <span class="review-tag review-tag--essay">Tự luận</span></div>
+        <div class="review-qtext">${escapeHtml(q.name)}</div>
+        <div class="review-essay-row">
+          <div class="review-essay-block review-essay-block--user">
+            <div class="review-essay-label">Bài làm của bạn</div>
+            <div class="review-essay-content">${userText ? escapeHtml(userText) : '<em style="color:#aaa">Chưa trả lời</em>'}</div>
+          </div>
+          <div class="review-essay-block review-essay-block--model">
+            <div class="review-essay-label">Đáp án gợi ý</div>
+            <div class="review-essay-content">${modelAnswer ? escapeHtml(modelAnswer) : '<em style="color:#aaa">Không có đáp án mẫu</em>'}</div>
+          </div>
+        </div>
+        <div class="review-essay-note">⚠ Câu tự luận do giáo viên chấm điểm</div>
+      </div>`;
+  }
+
+  // Trắc nghiệm
+  const chosenIdx = userAnswer;
+  const optList = q.answers || [];
+  const correctIdx = optList.findIndex((a) => a.isCorrect === true);
+  const isCorrect = chosenIdx !== undefined && chosenIdx === correctIdx;
+  const statusClass =
+    chosenIdx === undefined
+      ? "review-item--skipped"
+      : isCorrect
+        ? "review-item--correct"
+        : "review-item--wrong";
+  const statusLabel =
+    chosenIdx === undefined ? "Bỏ qua" : isCorrect ? "✓ Đúng" : "✗ Sai";
+  const statusTag =
+    chosenIdx === undefined
+      ? "review-tag--skipped"
+      : isCorrect
+        ? "review-tag--correct"
+        : "review-tag--wrong";
+
+  const optsHtml = optList
+    .map((opt, oi) => {
+      let cls = "review-opt";
+      if (oi === correctIdx) cls += " review-opt--correct";
+      if (oi === chosenIdx && !isCorrect) cls += " review-opt--wrong";
+      const marker = String.fromCharCode(65 + oi);
+      const icon =
+        oi === correctIdx ? " ✓" : oi === chosenIdx && !isCorrect ? " ✗" : "";
+      return `<div class="${cls}"><span class="option-marker">${marker}</span><span>${escapeHtml(opt.text)}${icon}</span></div>`;
+    })
+    .join("");
+
+  return `
+    <div class="review-item ${statusClass}">
+      <div class="review-qnum">Câu ${idx + 1} <span class="review-tag ${statusTag}">${statusLabel}</span></div>
+      <div class="review-qtext">${escapeHtml(q.name)}</div>
+      <div class="review-opts">${optsHtml}</div>
+    </div>`;
 }
 
 // OVERLAY HELPER

@@ -388,6 +388,38 @@ body {
   user-select: none;
 }
 
+.quiz-option--essay {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 18px 18px;
+  cursor: text;
+  border-color: var(--gray-200);
+  background: #fff;
+  user-select: auto;
+}
+
+.quiz-option--essay label {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.quiz-option--essay textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gray-200);
+  outline: none;
+  resize: vertical;
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--gray-900);
+}
+
 .quiz-option:hover {
   border-color: var(--primary);
   background: var(--primary-light);
@@ -667,8 +699,17 @@ body {
   text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 12px;
+}
+
+.popup-result {
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.popup-result.active {
+  overflow-y: auto;
 }
 
 .result-ring {
@@ -1220,4 +1261,201 @@ footer {
     padding: 14px;
     font-size: 11px;
   }
+}
+
+/* =============================================
+   REVIEW SECTION — thêm vào cuối file CSS
+   ============================================= */
+
+#result-review {
+  width: 100%;
+  margin-top: 20px;
+  border-top: 1px solid #eee;
+  padding-top: 16px;
+  text-align: left;
+}
+
+.review-header {
+  margin-bottom: 12px;
+}
+
+.review-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #212529;
+  margin: 0;
+}
+
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Item chung */
+.review-item {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #fff;
+}
+
+.review-item--correct {
+  border-left: 4px solid #198754;
+}
+.review-item--wrong {
+  border-left: 4px solid #dc3545;
+}
+.review-item--skipped {
+  border-left: 4px solid #adb5bd;
+}
+.review-item--essay {
+  border-left: 4px solid #f59e0b;
+}
+
+.review-qnum {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6c757d;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.review-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.review-tag--correct {
+  background: #d1fae5;
+  color: #065f46;
+}
+.review-tag--wrong {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.review-tag--skipped {
+  background: #f1f5f9;
+  color: #64748b;
+}
+.review-tag--essay {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.review-qtext {
+  font-size: 14px;
+  color: #212529;
+  margin-bottom: 10px;
+  white-space: pre-line;
+}
+
+/* Options trắc nghiệm */
+.review-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.review-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+
+.review-opt--correct {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+  font-weight: 600;
+  color: #065f46;
+}
+
+.review-opt--wrong {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+/* Essay */
+.review-essay-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 600px) {
+  .review-essay-row {
+    flex-direction: column;
+  }
+
+  .popup-result {
+    width: min(94vw, 100%);
+    max-width: 94vw;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .popup-result__body {
+    padding: 22px 16px 16px;
+  }
+
+  .result-ring {
+    width: 84px;
+    height: 84px;
+  }
+}
+
+.review-essay-block {
+  flex: 1;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  border: 1px solid #e9ecef;
+}
+
+.review-essay-block--user {
+  background: #f8f9fa;
+}
+
+.review-essay-block--model {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.review-essay-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.review-essay-block--user .review-essay-label {
+  color: #6c757d;
+}
+.review-essay-block--model .review-essay-label {
+  color: #059669;
+}
+
+.review-essay-content {
+  color: #212529;
+  white-space: pre-line;
+  line-height: 1.5;
+}
+
+.review-essay-note {
+  font-size: 11px;
+  color: #92400e;
+  background: #fef3c7;
+  padding: 4px 8px;
+  border-radius: 4px;
 }

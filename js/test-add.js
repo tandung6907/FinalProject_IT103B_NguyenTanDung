@@ -15,7 +15,7 @@ let tempAnswers = [];
 // tempAnswers: [{ id, text, isCorrect }]
 
 let testName, testImg, testTime, previewImg;
-let listCategory, fileName, quesName;
+let listCategory, fileName, quesName, excelFile, excelStatus;
 let overlay, popupForm, popupConfirm, confirmName;
 let questionList;
 let currentBase64Img = "";
@@ -42,9 +42,29 @@ function loadCategoryFromLocalStorage() {
   return data ? JSON.parse(data) : [];
 }
 
+async function loadStaticTests() {
+  try {
+    const response = await fetch("../data/tests.json");
+    if (!response.ok) return [];
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+async function loadTests() {
+  const localData = loadTestFromLocalStorage();
+  const staticData = await loadStaticTests();
+  const map = new Map();
+  staticData.forEach((t) => map.set(t.id, t));
+  localData.forEach((t) => map.set(t.id, t));
+  return Array.from(map.values());
+}
+
 // INIT
-window.onload = function () {
-  tests = loadTestFromLocalStorage();
+window.onload = async function () {
+  tests = await loadTests();
   if (tests.length > 0) {
     nextTestId = Math.max(...tests.map((t) => t.id)) + 1;
   }
@@ -71,6 +91,10 @@ window.onload = function () {
 
   renderCategories(loadCategoryFromLocalStorage());
   renderQuestions();
+
+  excelFile = document.getElementById("excel-file");
+  excelStatus = document.getElementById("excel-import-status");
+  if (excelFile) excelFile.onchange = handleExcelImport;
 
   // EVENTS
   document.querySelector(".btn-add").onclick = openAddPopup;
@@ -473,6 +497,113 @@ function showSuccessPopup() {
   setTimeout(() => {
     window.location.href = "../pages/test-manager.html";
   }, 1000);
+}
+
+function showExcelStatus(message, isError = false) {
+  if (!excelStatus) return;
+  excelStatus.textContent = message;
+  excelStatus.style.color = isError ? "#d32f2f" : "#2e7d32";
+}
+
+function handleExcelImport(event) {
+  const file = event.target.files[0];
+  if (!file) {
+    showExcelStatus("Không có file Excel được chọn.", true);
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const data = e.target.result;
+    try {
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+      importQuestionsFromExcel(rows);
+    } catch (error) {
+      showExcelStatus("Không thể đọc file Excel. Vui lòng kiểm tra định dạng.", true);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function importQuestionsFromExcel(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    showExcelStatus("File Excel không có dữ liệu.", true);
+    return;
+  }
+
+  const imported = [];
+  rows.forEach((row, index) => {
+    const questionText = String(row.Question || row.question || "").trim();
+    if (!questionText) return;
+
+    const typeValue = String(row.Type || row.type || "").trim().toLowerCase();
+    const isEssay = typeValue.includes("essay") || typeValue.includes("tự luận") || typeValue.includes("tu luan");
+
+    if (isEssay) {
+      const answerText = String(row.Answer || row.answer || "").trim();
+      imported.push({
+        id: nextQuesId++,
+        name: questionText,
+        type: "essay",
+        answer: answerText,
+      });
+      return;
+    }
+
+    const options = ["A", "B", "C", "D"].map((letter) => {
+      const text = String(row[`Option ${letter}`] || row[`option ${letter}`] || "").trim();
+      return text ? { id: Date.now() + Math.random(), text, isCorrect: false } : null;
+    }).filter(Boolean);
+
+    if (options.length < 2) {
+      return;
+    }
+
+    const correctValue = String(row.Correct || row.correct || "").trim().toLowerCase();
+    let correctAssigned = false;
+    options.forEach((option) => {
+      if (
+        correctValue === option.text.trim().toLowerCase() ||
+        correctValue === option.text.trim().charAt(0).toLowerCase() ||
+        correctValue === option.text.trim().slice(0, 1).toLowerCase() ||
+        correctValue === option.text.trim().toLowerCase()
+      ) {
+        option.isCorrect = true;
+        correctAssigned = true;
+      }
+    });
+
+    if (!correctAssigned) {
+      const letterIndex = ["a", "b", "c", "d"].indexOf(correctValue);
+      if (letterIndex >= 0 && options[letterIndex]) {
+        options[letterIndex].isCorrect = true;
+        correctAssigned = true;
+      }
+    }
+
+    if (!correctAssigned) {
+      options[0].isCorrect = true;
+    }
+
+    imported.push({
+      id: nextQuesId++,
+      name: questionText,
+      type: "mcq",
+      answers: options,
+    });
+  });
+
+  if (imported.length === 0) {
+    showExcelStatus("Không tìm thấy câu hỏi hợp lệ trong file Excel.", true);
+    return;
+  }
+
+  questions = imported;
+  renderQuestions();
+  showExcelStatus(`Đã nhập ${imported.length} câu hỏi từ Excel.`);
 }
 
 // Giữ tương thích nếu nút Lưu gọi handleSave()

@@ -8,15 +8,43 @@ let timerInterval = null;
 let remainingSeconds = 0;
 let quizSubmitted = false;
 
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 // Hành động pending khi popup cảnh báo hiện ra ("logout" hoặc "home")
 let pendingAction = null;
 
+async function loadStaticTests() {
+  try {
+    const response = await fetch("../data/tests.json");
+    if (!response.ok) return [];
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+async function loadTests() {
+  const localData = JSON.parse(localStorage.getItem(TEST_KEY) || "[]");
+  const staticData = await loadStaticTests();
+  const map = new Map();
+  staticData.forEach((t) => map.set(t.id, t));
+  localData.forEach((t) => map.set(t.id, t));
+  return Array.from(map.values());
+}
+
 // INIT
-window.onload = function () {
+window.onload = async function () {
   const params = new URLSearchParams(window.location.search);
   const id = parseInt(params.get("id"));
 
-  const tests = JSON.parse(localStorage.getItem(TEST_KEY) || "[]");
+  const tests = await loadTests();
   currentTest = tests.find((t) => t.id === id);
 
   if (!currentTest) {
@@ -84,7 +112,8 @@ function renderNavGrid() {
   const grid = document.getElementById("nav-grid");
   grid.innerHTML = questions
     .map((q, i) => {
-      const answered = answers[q.id] !== undefined;
+      const answerValue = answers[q.id];
+      const answered = answerValue !== undefined && answerValue !== "";
       const isCurrent = i === currentIndex;
       let cls = "nav-btn";
       if (isCurrent) cls += " nav-btn--current";
@@ -108,24 +137,37 @@ function renderQuestion() {
 
   document.getElementById("quiz-qtext").textContent = q.name;
 
-  const opts = (q.answers || []).map((a) => a.text);
-
   const optList = document.getElementById("quiz-options");
-  optList.innerHTML = opts
-    .map((opt, idx) => {
-      const selected = answers[q.id] === idx;
-      return `
-        <li class="quiz-option ${selected ? "quiz-option--selected" : ""}"
-            onclick="selectAnswer(${q.id}, ${idx}, this)">
-          <span class="option-marker">${String.fromCharCode(65 + idx)}</span>
-          <span class="option-text">${opt}</span>
-        </li>`;
-    })
-    .join("");
+  if (q.type === "essay") {
+    const value = answers[q.id] || "";
+    optList.innerHTML = `
+      <li class="quiz-option quiz-option--essay">
+        <label for="essay-answer">Đáp án tự luận</label>
+        <textarea id="essay-answer" rows="6" placeholder="Nhập câu trả lời..." oninput="saveEssayAnswer(${q.id}, this.value)">${escapeHtml(value)}</textarea>
+      </li>`;
+  } else {
+    const opts = (q.answers || []).map((a) => a.text);
+    optList.innerHTML = opts
+      .map((opt, idx) => {
+        const selected = answers[q.id] === idx;
+        return `
+          <li class="quiz-option ${selected ? "quiz-option--selected" : ""}"
+              onclick="selectAnswer(${q.id}, ${idx}, this)">
+            <span class="option-marker">${String.fromCharCode(65 + idx)}</span>
+            <span class="option-text">${opt}</span>
+          </li>`;
+      })
+      .join("");
+  }
 
   document.getElementById("btn-prev").disabled = currentIndex === 0;
   document.getElementById("btn-next").disabled = currentIndex === total - 1;
 
+  renderNavGrid();
+}
+
+function saveEssayAnswer(qId, value) {
+  answers[qId] = value;
   renderNavGrid();
 }
 
@@ -226,6 +268,14 @@ function doLogout() {
 function calcScore() {
   let correct = 0;
   questions.forEach((q) => {
+    if (q.type === "essay") {
+      const text = String(answers[q.id] || "").trim();
+      if (text && q.answer && text.toLowerCase() === String(q.answer).trim().toLowerCase()) {
+        correct++;
+      }
+      return;
+    }
+
     const chosenIdx = answers[q.id];
     if (chosenIdx === undefined) return;
     const chosen = (q.answers || [])[chosenIdx];

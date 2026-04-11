@@ -9,9 +9,29 @@ let currentPage = 1;
 let sortOrder = ""; // "asc" | "desc" | ""
 
 // LOAD
-function loadTests() {
+function loadLocalTests() {
   const data = localStorage.getItem(TEST_KEY);
   return data ? JSON.parse(data) : [];
+}
+
+async function loadStaticTests() {
+  try {
+    const response = await fetch("../data/tests.json");
+    if (!response.ok) return [];
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+async function loadTests() {
+  const localData = loadLocalTests();
+  const staticData = await loadStaticTests();
+  const map = new Map();
+  staticData.forEach((t) => map.set(t.id, t));
+  localData.forEach((t) => map.set(t.id, t));
+  return Array.from(map.values());
 }
 
 function loadCategories() {
@@ -274,6 +294,11 @@ function addAdminNav() {
 
 // INITS
 addAdminNav();
-tests = loadTests();
-categories = loadCategories();
-renderCards();
+
+async function initHome() {
+  tests = await loadTests();
+  categories = loadCategories();
+  renderCards();
+}
+
+initHome();

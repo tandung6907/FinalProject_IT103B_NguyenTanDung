@@ -16,9 +16,29 @@ const searchInput = document.getElementById("search-input");
 const sortSelect = document.getElementById("sort-select");
 
 // LOAD
-function loadTestFromLocalStorage() {
+function loadLocalTests() {
   const data = localStorage.getItem(TEST_KEY);
   return data ? JSON.parse(data) : [];
+}
+
+async function loadStaticTests() {
+  try {
+    const response = await fetch("../data/tests.json");
+    if (!response.ok) return [];
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+async function loadTests() {
+  const localData = loadLocalTests();
+  const staticData = await loadStaticTests();
+  const map = new Map();
+  staticData.forEach((t) => map.set(t.id, t));
+  localData.forEach((t) => map.set(t.id, t));
+  return Array.from(map.values());
 }
 
 function saveTestToLocalStorage() {
@@ -198,13 +218,17 @@ sortSelect.addEventListener("change", () => {
 });
 
 // LẮNG NGHE SỰ KIỆN LƯU THÊM TỪ TEST ADD
-window.addEventListener("storage", (e) => {
+window.addEventListener("storage", async (e) => {
   if (e.key === TEST_KEY) {
-    tests = loadTestFromLocalStorage();
+    tests = await loadTests();
     renderTable();
   }
 });
 
-tests = loadTestFromLocalStorage();
-categories = loadCategories();
-renderTable();
+async function initTestManager() {
+  tests = await loadTests();
+  categories = loadCategories();
+  renderTable();
+}
+
+initTestManager();

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Thêm bài test</title>
     <link rel="stylesheet" href="../css/test-add.css" />
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="../js/test-add.js"></script>
   </head>
   <body>
@@ -24,6 +25,12 @@
         <label for="test-name">Tên bài test</label>
         <input type="text" id="test-name" placeholder="Điền tên bài test" />
         <p class="error-test">Không để trống tên bài test!</p>
+        <div class="form-group">
+          <label for="excel-file">Nhập câu hỏi từ Excel</label>
+          <input type="file" id="excel-file" accept=".xlsx,.xls" />
+          <p class="excel-note">File Excel cần có cột: Type, Question, Option A, Option B, Option C, Option D, Correct, Answer</p>
+          <p class="excel-status" id="excel-import-status"></p>
+        </div>
         <div class="form-group">
           <label>Ảnh bài test</label>
           <div class="file-input-wrapper">

@@ -25,9 +25,29 @@ let errorTest,
   errorIcon;
 
 // LOCALSTORAGE
-function loadTestFromLocalStorage() {
+function loadLocalTests() {
   const data = localStorage.getItem(TEST_KEY);
   return data ? JSON.parse(data) : [];
+}
+
+async function loadStaticTests() {
+  try {
+    const response = await fetch("../data/tests.json");
+    if (!response.ok) return [];
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+async function loadTests() {
+  const localData = loadLocalTests();
+  const staticData = await loadStaticTests();
+  const map = new Map();
+  staticData.forEach((t) => map.set(t.id, t));
+  localData.forEach((t) => map.set(t.id, t));
+  return Array.from(map.values());
 }
 
 function saveTestToLocalStorage() {
@@ -40,8 +60,8 @@ function loadCategoryFromLocalStorage() {
 }
 
 // INIT
-window.onload = function () {
-  tests = loadTestFromLocalStorage();
+window.onload = async function () {
+  tests = await loadTests();
 
   const params = new URLSearchParams(window.location.search);
   currentTestId = parseInt(params.get("id"));

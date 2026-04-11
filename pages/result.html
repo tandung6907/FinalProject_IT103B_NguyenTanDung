@@ -21,7 +21,9 @@
       </section>
       <nav class="pages-link">
         <a href="../pages/home.html">Trang Chủ</a>
+        <a href="../pages/category-manager.html">Quản Lý</a>
         <a href="../pages/result.html">Kết Quả</a>
+        <button onclick="logOut()">Đăng Xuất</button>
       </nav>
     </header>
 
@@ -34,6 +36,42 @@
       </section>
 
       <section class="container">
+        <div class="remote-config-panel">
+          <div class="remote-config-header">
+            <h3>Đồng bộ kết quả từ xa</h3>
+            <p>Nhập cấu hình GitHub để lưu kết quả chung, giúp admin xem kết quả từ máy khác.</p>
+          </div>
+          <div class="remote-config-fields">
+            <input id="remote-owner" type="text" placeholder="GitHub owner" />
+            <input id="remote-repo" type="text" placeholder="GitHub repo" />
+            <input id="remote-path" type="text" placeholder="Đường dẫn file JSON (ví dụ results/quiz-results.json)" />
+            <input id="remote-token" type="password" placeholder="GitHub token (chỉ lưu ở trình duyệt này)" />
+          </div>
+          <div class="remote-config-actions">
+            <button id="save-remote-config" class="btn-save">Lưu cấu hình</button>
+            <button id="load-remote-results" class="btn-view">Tải kết quả từ GitHub</button>
+          </div>
+          <p class="remote-status" id="remote-status"></p>
+        </div>
+
+        <div class="remote-config-panel">
+          <div class="remote-config-header">
+            <h3>Đồng bộ bài test từ xa</h3>
+            <p>Nhập cấu hình GitHub để lưu bài test chung, giúp người khác thấy bài test từ máy khác.</p>
+          </div>
+          <div class="remote-config-fields">
+            <input id="test-remote-owner" type="text" placeholder="GitHub owner" />
+            <input id="test-remote-repo" type="text" placeholder="GitHub repo" />
+            <input id="test-remote-path" type="text" placeholder="Đường dẫn file JSON (ví dụ data/tests.json)" />
+            <input id="test-remote-token" type="password" placeholder="GitHub token (chỉ lưu ở trình duyệt này)" />
+          </div>
+          <div class="remote-config-actions">
+            <button id="save-test-remote-config" class="btn-save">Lưu cấu hình</button>
+            <button id="load-remote-tests" class="btn-view">Tải bài test từ GitHub</button>
+          </div>
+          <p class="test-remote-status" id="test-remote-status"></p>
+        </div>
+
         <div class="result-actions">
           <div class="result-search-group">
             <input id="search-result" type="text" placeholder="Tìm kiếm theo tên người làm hoặc tên bài test" />
@@ -79,6 +117,7 @@
     <script>
       checkAdmin();
     </script>
+    <script src="../js/remote-storage.js"></script>
     <script src="../js/result.js"></script>
   </body>
 </html>

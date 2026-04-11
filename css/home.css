@@ -765,6 +765,57 @@ footer {
 }
 
 /* Result page admin styles */
+.remote-config-panel {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
+  margin-bottom: 22px;
+}
+
+.remote-config-header h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.remote-config-header p {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.remote-config-fields {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.remote-config-fields input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #111827;
+}
+
+.remote-config-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.remote-status {
+  margin-top: 12px;
+  font-size: 14px;
+  min-height: 20px;
+}
+
 .result-actions {
   display: flex;
   justify-content: space-between;

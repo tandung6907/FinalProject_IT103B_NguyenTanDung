@@ -51,6 +51,19 @@ function saveQuizResult(entry) {
   saveQuizResults(allResults);
 }
 
+async function syncQuizResultToRemote(entry) {
+  const config = getRemoteResultConfig();
+  if (!config) return;
+
+  try {
+    const remoteResults = await loadRemoteResultsFromGithub().catch(() => []);
+    const merged = mergeResultRecords(remoteResults, [entry]);
+    await saveRemoteResultsToGithub(merged);
+  } catch (error) {
+    console.warn("Không thể đồng bộ kết quả lên GitHub:", error);
+  }
+}
+
 function createQuizResultRecord(user, totalQuestions, answered, correct, totalMCQ, essayCount) {
   const answersData = questions.map((q) => {
     if (q.type === "essay") {
@@ -116,8 +129,10 @@ async function loadStaticTests() {
 async function loadTests() {
   const localData = JSON.parse(localStorage.getItem(TEST_KEY) || "[]");
   const staticData = await loadStaticTests();
+  const remoteData = await loadRemoteTestsFromGithub().catch(() => []);
   const map = new Map();
   staticData.forEach((t) => map.set(t.id, t));
+  remoteData.forEach((t) => map.set(t.id, t));
   localData.forEach((t) => map.set(t.id, t));
   return Array.from(map.values());
 }
@@ -390,6 +405,7 @@ function submitQuiz(afterAction) {
     total - mcqTotal,
   );
   saveQuizResult(resultRecord);
+  syncQuizResultToRemote(resultRecord);
 
   document.getElementById("popup-result").style.setProperty("--pct", `${pct}%`);
   document.getElementById("result-score").textContent = `${score100}/100`;

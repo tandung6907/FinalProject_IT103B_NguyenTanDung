@@ -1,1 +1,69 @@
-[]
+[
+  {
+    "id": 1,
+    "name": "Kiểm tra Toán cơ bản",
+    "category": "Toán",
+    "categoryId": 1,
+    "time": 5,
+    "playCount": 0,
+    "img": "",
+    "questions": [
+      {
+        "id": 101,
+        "name": "2 + 2 = ?",
+        "type": "mcq",
+        "answers": [
+          { "text": "3", "isCorrect": false },
+          { "text": "4", "isCorrect": true },
+          { "text": "5", "isCorrect": false },
+          { "text": "6", "isCorrect": false }
+        ]
+      },
+      {
+        "id": 102,
+        "name": "Tìm x biết 3x = 9",
+        "type": "mcq",
+        "answers": [
+          { "text": "1", "isCorrect": false },
+          { "text": "2", "isCorrect": false },
+          { "text": "3", "isCorrect": true },
+          { "text": "4", "isCorrect": false }
+        ]
+      },
+      {
+        "id": 103,
+        "name": "Viết một câu bằng tiếng Việt về ngày hè.",
+        "type": "essay",
+        "answer": "Hè là mùa tôi thích vì có nhiều kỳ nghỉ và thời tiết ấm áp."
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Kiểm tra Văn học",
+    "category": "Văn",
+    "categoryId": 2,
+    "time": 7,
+    "playCount": 0,
+    "img": "",
+    "questions": [
+      {
+        "id": 201,
+        "name": "Tác giả của 'Chiếc thuyền ngoài xa' là ai?",
+        "type": "mcq",
+        "answers": [
+          { "text": "Nam Cao", "isCorrect": false },
+          { "text": "Nguyễn Minh Châu", "isCorrect": true },
+          { "text": "Nguyễn Du", "isCorrect": false },
+          { "text": "Huy Cận", "isCorrect": false }
+        ]
+      },
+      {
+        "id": 202,
+        "name": "Nêu cảm nghĩ của bạn về nhân vật Phùng.",
+        "type": "essay",
+        "answer": "Phùng là một nhân vật có tâm hồn nghệ sĩ, luôn tìm kiếm vẻ đẹp đích thực trong cuộc sống."
+      }
+    ]
+  }
+]

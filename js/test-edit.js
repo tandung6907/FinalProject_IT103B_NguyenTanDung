@@ -44,14 +44,28 @@ async function loadStaticTests() {
 async function loadTests() {
   const localData = loadLocalTests();
   const staticData = await loadStaticTests();
+  const remoteData = await loadRemoteTestsFromGithub().catch(() => []);
   const map = new Map();
   staticData.forEach((t) => map.set(t.id, t));
+  remoteData.forEach((t) => map.set(t.id, t));
   localData.forEach((t) => map.set(t.id, t));
   return Array.from(map.values());
 }
 
 function saveTestToLocalStorage() {
   localStorage.setItem(TEST_KEY, JSON.stringify(tests));
+  syncTestsToRemote();
+}
+
+async function syncTestsToRemote() {
+  const config = getRemoteTestConfig();
+  if (!config) return;
+  try {
+    await saveRemoteTestsToGithub(tests);
+    console.log("Đã đồng bộ bài test lên GitHub.");
+  } catch (error) {
+    console.warn("Không thể đồng bộ bài test lên GitHub:", error);
+  }
 }
 
 function loadCategoryFromLocalStorage() {

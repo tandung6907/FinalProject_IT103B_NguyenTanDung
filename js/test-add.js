@@ -28,8 +28,20 @@ let errorTest,
   errorIcon;
 
 // LOCAL STORAGE
-function saveTestToLocalStorage() {
+async function saveTestToLocalStorage() {
   localStorage.setItem(TEST_KEY, JSON.stringify(tests));
+  await syncTestsToRemote();
+}
+
+async function syncTestsToRemote() {
+  const config = getRemoteTestConfig();
+  if (!config) return;
+  try {
+    await saveRemoteTestsToGithub(tests);
+    console.log("Đã đồng bộ bài test lên GitHub.");
+  } catch (error) {
+    console.warn("Không thể đồng bộ bài test lên GitHub:", error);
+  }
 }
 
 function loadTestFromLocalStorage() {

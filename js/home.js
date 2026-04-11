@@ -28,8 +28,10 @@ async function loadStaticTests() {
 async function loadTests() {
   const localData = loadLocalTests();
   const staticData = await loadStaticTests();
+  const remoteData = await loadRemoteTestsFromGithub().catch(() => []);
   const map = new Map();
   staticData.forEach((t) => map.set(t.id, t));
+  remoteData.forEach((t) => map.set(t.id, t));
   localData.forEach((t) => map.set(t.id, t));
   return Array.from(map.values());
 }

@@ -20,6 +20,108 @@ function saveResults() {
   localStorage.setItem(RESULT_KEY, JSON.stringify(results));
 }
 
+function getRemoteStatusElement() {
+  return document.getElementById("remote-status");
+}
+
+function setRemoteStatus(message, isError = false) {
+  const status = getRemoteStatusElement();
+  if (!status) return;
+  status.textContent = message;
+  status.style.color = isError ? "#b91c1c" : "#065f46";
+}
+
+function getTestRemoteStatusElement() {
+  return document.getElementById("test-remote-status");
+}
+
+function setTestRemoteStatus(message, isError = false) {
+  const status = getTestRemoteStatusElement();
+  if (!status) return;
+  status.textContent = message;
+  status.style.color = isError ? "#b91c1c" : "#065f46";
+}
+
+function populateRemoteConfigForm() {
+  const config = loadRemoteResultConfig();
+  if (!config) return;
+  document.getElementById("remote-owner").value = config.owner || "";
+  document.getElementById("remote-repo").value = config.repo || "";
+  document.getElementById("remote-path").value = config.path || "";
+  document.getElementById("remote-token").value = config.token || "";
+}
+
+function populateTestRemoteConfigForm() {
+  const config = loadRemoteTestConfig();
+  if (!config) return;
+  document.getElementById("test-remote-owner").value = config.owner || "";
+  document.getElementById("test-remote-repo").value = config.repo || "";
+  document.getElementById("test-remote-path").value = config.path || "";
+  document.getElementById("test-remote-token").value = config.token || "";
+}
+
+function getRemoteConfigFromForm() {
+  return {
+    owner: document.getElementById("remote-owner")?.value.trim() || "",
+    repo: document.getElementById("remote-repo")?.value.trim() || "",
+    path: document.getElementById("remote-path")?.value.trim() || "",
+    token: document.getElementById("remote-token")?.value.trim() || "",
+  };
+}
+
+function getTestRemoteConfigFromForm() {
+  return {
+    owner: document.getElementById("test-remote-owner")?.value.trim() || "",
+    repo: document.getElementById("test-remote-repo")?.value.trim() || "",
+    path: document.getElementById("test-remote-path")?.value.trim() || "",
+    token: document.getElementById("test-remote-token")?.value.trim() || "",
+  };
+}
+
+function validateRemoteConfig(config) {
+  if (!config.owner || !config.repo || !config.path || !config.token) {
+    throw new Error("Vui lòng nhập đủ owner, repo, đường dẫn file và token GitHub.");
+  }
+}
+
+function validateTestRemoteConfig(config) {
+  if (!config.owner || !config.repo || !config.path || !config.token) {
+    throw new Error("Vui lòng nhập đủ owner, repo, đường dẫn file và token GitHub cho bài test.");
+  }
+}
+
+async function loadRemoteResults() {
+  try {
+    const remoteResults = await loadRemoteResultsFromGithub();
+    results = mergeResultRecords(results, remoteResults);
+    saveResults();
+    setRemoteStatus("Đã tải dữ liệu kết quả từ GitHub.");
+  } catch (error) {
+    setRemoteStatus(error.message || "Không thể tải dữ liệu từ GitHub.", true);
+  }
+}
+
+async function syncResultsToRemote() {
+  const config = getRemoteResultConfig();
+  if (!config) return;
+  try {
+    await saveRemoteResultsToGithub(results);
+    setRemoteStatus("Đã đồng bộ kết quả lên GitHub.");
+  } catch (error) {
+    setRemoteStatus(error.message || "Không thể lưu kết quả lên GitHub.", true);
+  }
+}
+
+async function loadRemoteTests() {
+  try {
+    const remoteTests = await loadRemoteTestsFromGithub();
+    // Note: This is just for loading, actual merge happens in other scripts
+    setTestRemoteStatus("Đã tải dữ liệu bài test từ GitHub.");
+  } catch (error) {
+    setTestRemoteStatus(error.message || "Không thể tải dữ liệu từ GitHub.", true);
+  }
+}
+
 function formatDateTime(value) {
   if (!value) return "-";
   const date = new Date(value);
@@ -168,7 +270,7 @@ function renderResultQuestion(q, idx, status) {
     </div>`;
 }
 
-function saveAdminNote(id) {
+async function saveAdminNote(id) {
   const note = document.getElementById("admin-note")?.value.trim() || "";
   const status = document.getElementById("result-status")?.value || "pending";
   const index = results.findIndex((item) => item.id === id);
@@ -179,20 +281,62 @@ function saveAdminNote(id) {
     results[index].gradedAt = new Date().toISOString();
   }
   saveResults();
+  await syncResultsToRemote();
   applyFilters();
   showResultDetail(id);
 }
 
-window.onload = function () {
+async function handleSaveRemoteConfig() {
+  try {
+    const config = getRemoteConfigFromForm();
+    validateRemoteConfig(config);
+    saveRemoteResultConfig(config);
+    setRemoteStatus("Cấu hình GitHub đã được lưu.");
+  } catch (error) {
+    setRemoteStatus(error.message || "Cấu hình không hợp lệ.", true);
+  }
+}
+
+async function handleLoadRemoteResults() {
+  await loadRemoteResults();
+  filteredResults = results;
+  renderResultsTable();
+}
+
+async function handleSaveTestRemoteConfig() {
+  try {
+    const config = getTestRemoteConfigFromForm();
+    validateTestRemoteConfig(config);
+    saveRemoteTestConfig(config);
+    setTestRemoteStatus("Cấu hình GitHub cho bài test đã được lưu.");
+  } catch (error) {
+    setTestRemoteStatus(error.message || "Cấu hình không hợp lệ.", true);
+  }
+}
+
+async function handleLoadRemoteTests() {
+  await loadRemoteTests();
+}
+
+window.onload = async function () {
   const user = checkAdmin();
   if (!user) return;
   results = loadResults();
   filteredResults = results;
+  populateRemoteConfigForm();
+  populateTestRemoteConfigForm();
   document.getElementById("search-result")?.addEventListener("input", applyFilters);
   document.getElementById("filter-status")?.addEventListener("change", applyFilters);
-  document.getElementById("refresh-results")?.addEventListener("click", () => {
+  document.getElementById("refresh-results")?.addEventListener("click", async () => {
     results = loadResults();
+    await loadRemoteResults();
     applyFilters();
   });
+  document.getElementById("save-remote-config")?.addEventListener("click", handleSaveRemoteConfig);
+  document.getElementById("load-remote-results")?.addEventListener("click", handleLoadRemoteResults);
+  document.getElementById("save-test-remote-config")?.addEventListener("click", handleSaveTestRemoteConfig);
+  document.getElementById("load-remote-tests")?.addEventListener("click", handleLoadRemoteTests);
+  await loadRemoteResults();
+  filteredResults = results;
   renderResultsTable();
 };
